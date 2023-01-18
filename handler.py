@@ -12,25 +12,23 @@ def handle_bot(event, context):
     try:
         json_body = json.loads(event['body'])
 
-        message = json_body['message']
-        chat_id = message['chat']['id']
+        message = json_body['message']['text']
+        username = json_body['message']['from']['username']
+        chat_id = json_body['message']['chat']['id']
 
         print(f'Chat ID: {chat_id}')
-        print(f'Received message: {message["text"]}')
+        print(f'Received message: {message}')
 
-        if message['from']['username'] not in users_allowed:
+        if username not in users_allowed:
             send_message(chat_id, 'You are not allowed to use this bot')
             return {'statusCode': 200}
 
-        if message['text'] == '/enable':
-            start_server()
-            send_message(chat_id, 'Server started')
-        elif message['text'] == '/disable':
+        if message == '/enable':
+            start_server(chat_id)
+        elif message == '/disable':
             stop_server()
-            send_message(chat_id, 'Server stopped')
-        elif message['text'] == '/status' or message['text'] == '/start':
-            status = get_status()
-            send_message(chat_id, status)
+        elif message == '/status' or message == '/start':
+            get_status(chat_id)
         else:
             send_message(chat_id, 'Invalid command')
 
@@ -40,29 +38,43 @@ def handle_bot(event, context):
         return {'statusCode': 500}
 
 
-def start_server():
+def start_server(chat_id: str):
+    start_instance()
+    send_message(chat_id, 'Server is starting...')
+
+def start_instance():
     ec2 = boto3.client('ec2')
     ec2.start_instances(InstanceIds=[ec2_instance_id])
 
 
-def stop_server():
+def stop_server(chat_id: str):
+    stop_instance()
+    send_message(chat_id, 'Server is stopping')
+
+def stop_instance():
     ec2 = boto3.client('ec2')
     ec2.stop_instances(InstanceIds=[ec2_instance_id])
 
 
-def get_status():
+def get_status(chat_id: str):
+    infos = get_instance_infos()
+
+    status_message = f'Server status: {infos.status.upper()}'
+
+    if infos.status == 'running':
+        public_ip = infos.ip
+        status_message += f' at {public_ip}'
+
+    send_message(chat_id, status_message)
+
+def get_instance_infos():
     ec2 = boto3.client('ec2')
     response = ec2.describe_instances(InstanceIds=[ec2_instance_id])
 
-    status = response['Reservations'][0]['Instances'][0]['State']['Name']
-    status = f'Server is {status}'
+    status: str = response['Reservations'][0]['Instances'][0]['State']['Name']
+    ip: str = response['Reservations'][0]['Instances'][0]['PublicIpAddress']
 
-    if status == 'Server is running':
-        public_ip = response['Reservations'][0]['Instances'][0]['PublicIpAddress']
-        status += f' at IP: {public_ip}'
-
-    return status
-
+    return {ip, status}
 
 def send_message(chat_id, text):
     url = f'https://api.telegram.org/bot{telegram_token}/sendMessage'
