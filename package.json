@@ -1,0 +1,10 @@
+{
+  "name": "mc-server",
+  "version": "1.0.0",
+  "description": "A Telegram Bot to manage your Minecraft Server",
+  "author": "André Glatz",
+  "license": "MIT",
+  "devDependencies": {
+    "serverless-python-requirements": "^6.0.0"
+  }
+}
