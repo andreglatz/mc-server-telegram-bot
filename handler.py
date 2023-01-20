@@ -26,7 +26,7 @@ def handle_bot(event, context):
         if message == '/enable':
             start_server(chat_id)
         elif message == '/disable':
-            stop_server()
+            stop_server(chat_id)
         elif message == '/status' or message == '/start':
             get_status(chat_id)
         else:
@@ -42,6 +42,7 @@ def start_server(chat_id: str):
     start_instance()
     send_message(chat_id, 'Server is starting...')
 
+
 def start_instance():
     ec2 = boto3.client('ec2')
     ec2.start_instances(InstanceIds=[ec2_instance_id])
@@ -51,6 +52,7 @@ def stop_server(chat_id: str):
     stop_instance()
     send_message(chat_id, 'Server is stopping')
 
+
 def stop_instance():
     ec2 = boto3.client('ec2')
     ec2.stop_instances(InstanceIds=[ec2_instance_id])
@@ -59,13 +61,16 @@ def stop_instance():
 def get_status(chat_id: str):
     infos = get_instance_infos()
 
-    status_message = f'Server status: {infos.status.upper()}'
+    status = infos.get('status')
+    ip = infos.get('ip')
 
-    if infos.status == 'running':
-        public_ip = infos.ip
-        status_message += f' at {public_ip}'
+    status_message = f'Server status: {status.upper()}'
+
+    if status == 'running':
+        status_message += f' at {ip}'
 
     send_message(chat_id, status_message)
+
 
 def get_instance_infos():
     ec2 = boto3.client('ec2')
@@ -74,7 +79,10 @@ def get_instance_infos():
     status: str = response['Reservations'][0]['Instances'][0]['State']['Name']
     ip: str = response['Reservations'][0]['Instances'][0]['PublicIpAddress']
 
-    return {ip, status}
+    infos = {'ip': ip, 'status': status}
+
+    return infos
+
 
 def send_message(chat_id, text):
     url = f'https://api.telegram.org/bot{telegram_token}/sendMessage'

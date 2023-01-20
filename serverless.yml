@@ -7,7 +7,6 @@ useDotenv: true
 plugins:
   - serverless-python-requirements
 
-
 provider:
   name: aws
   runtime: python3.8
@@ -16,6 +15,7 @@ provider:
     EC2_INSTANCE_ID: ${env:EC2_INSTANCE_ID}
     USERS_ALLOWED: ${env:USERS_ALLOWED}
     TELEGRAM_TOKEN: ${env:TELEGRAM_TOKEN}
+    STAGE: ${sls:stage}
   iam:
     role:
       statements:
@@ -27,7 +27,7 @@ provider:
           Resource: '*'
 
 functions:
-  hello:
+  handle_bot:
     handler: handler.handle_bot
     events:
       - http:

@@ -1,0 +1,3 @@
+{
+    "body": "{\"update_id\":215974928,\"message\":{\"message_id\":19,\"from\":{\"id\":882184553,\"is_bot\":false,\"first_name\":\"Andr\u00e9\",\"last_name\":\"Glatz\",\"username\":\"andreglatz\",\"language_code\":\"en\"},\"chat\":{\"id\":882184553,\"first_name\":\"Andr\u00e9\",\"last_name\":\"Glatz\",\"username\":\"andreglatz\",\"type\":\"private\"},\"date\":1674225987,\"text\":\"/status\",\"entities\":[{\"offset\":0,\"length\":7,\"type\":\"bot_command\"}]}}"
+}
